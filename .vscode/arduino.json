@@ -1,0 +1,4 @@
+{
+    "sketch": "rotating_pod.cpp",
+    "board": "arduino:avr:uno"
+}
