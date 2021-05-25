@@ -4,6 +4,9 @@
  * Author: Yotam Salmon
  * 
  * TODO: Please fill in the correct values for steps per revolution (i couldn't find them for our motor)
+ * 
+ * Note: For information about wiring, this program is based on the following guide:
+ *      https://www.arduino.cc/en/Tutorial/LibraryExamples/StepperSpeedControl
  */
 
 #include <Stepper.h>
