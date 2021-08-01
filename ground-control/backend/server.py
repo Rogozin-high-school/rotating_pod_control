@@ -1,14 +1,24 @@
 import socket
 import threading
-from flask import Flask, json
+import struct
+from flask import Flask, json, request
 from flask_cors import CORS
+from time import sleep
 
 app = Flask(__name__)
 CORS(app)
 
+socket.setdefaulttimeout(20)
+
 lock = threading.Lock()
 client_connected = False
 running = True
+
+# Sat related fields
+stepsPerRevolution = 200
+scanSpeed = 10
+retreatSpeed = 40
+arcSize = int(stepsPerRevolution / 4)
 
 @app.route('/client-connection', methods=['GET'])
 def client_connection():
@@ -19,13 +29,28 @@ def client_connection():
 @app.route('/update-values', methods=['POST'])
 def update_values():
     global client_connected
+    global stepsPerRevolution
+    global scanSpeed
+    global retreatSpeed
+    global arcSize
     with lock:
         if not client_connected:
             return 'Client is not connected'
+        res = request.json
+        stepsPerRevolution = int(res['stepsPerRevolution'], 10)
+        scanSpeed = int(res['scanSpeed'], 10)
+        retreatSpeed = int(res['retreatSpeed'], 10)
+        arcSize = int(res['arcSize'], 10)
+    return 'OK'
+        
 
 def serve():
     global client_connected
     global running
+    global stepsPerRevolution
+    global scanSpeed
+    global retreatSpeed
+    global arcSize
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.bind(('localhost', 1234))
         server.listen()
@@ -34,7 +59,20 @@ def serve():
             with conn:
                 with lock:
                     client_connected = True
-                print(conn.recv(120))
+                while True:
+                    message = ''
+                    with lock:
+                        message = struct.pack('H', stepsPerRevolution) + \
+                            struct.pack('H', scanSpeed) + \
+                            struct.pack('H', retreatSpeed) + \
+                            struct.pack('H', arcSize)
+                    try:
+                        conn.send(message)
+                        # TODO: Add reading from camera
+                    except (socket.timeout, ConnectionResetError):
+                        print('client disconnected')
+                        break
+                    sleep(5)
             with lock:
                 client_connected = False
 
