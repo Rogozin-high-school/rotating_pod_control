@@ -52,7 +52,7 @@ def serve():
     global retreatSpeed
     global arcSize
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.bind(('localhost', 1234))
+        server.bind(('192.168.43.188', 1234))
         server.listen()
         while (running):
             conn, addr = server.accept()
@@ -67,7 +67,8 @@ def serve():
                             struct.pack('H', retreatSpeed) + \
                             struct.pack('H', arcSize)
                     try:
-                        conn.send(message)
+                        if conn.recv(8) == b'ready':
+                            conn.send(message)
                         # TODO: Add reading from camera
                     except (socket.timeout, ConnectionResetError):
                         print('client disconnected')
