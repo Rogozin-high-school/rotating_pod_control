@@ -52,9 +52,12 @@ def serve():
     global retreatSpeed
     global arcSize
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.bind(('192.168.43.188', 1234))
+        ip, port = '192.168.250.90', 1234
+        print(f'listenning on ip: {ip} on port: {port}')
+        server.bind((ip, port))
         server.listen()
         while (running):
+            print('Waiting for client to connect...')
             conn, addr = server.accept()
             with conn:
                 with lock:
